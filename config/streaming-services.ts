@@ -1,0 +1,7 @@
+
+export const YOUTUBE_API_KEY = 'AIzaSyCkjeTTLkbuCF5TCRMxvRDjlTJ54M8NcgQ';
+
+export const SPOTIFY_CONFIG = {
+  CLIENT_ID: '93fb472b8d5e4bc39e18d07cb3db786e',
+  CLIENT_SECRET: '3879a156d3384a1da943e468d2ec935a',
+};

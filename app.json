@@ -1,25 +1,29 @@
 {
   "expo": {
-    "name": "spoton-music-player",
+    "name": "Spoton Music Player",
     "slug": "spoton-music-player",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/new_icon.png",
     "scheme": "spotonmusicplayer",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.zohaib144.spotonmusicplayer",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundColor": "#000000",
+        "foregroundImage": "./assets/images/new_icon.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.zohaib144.spotonmusicplayer",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -43,6 +47,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "767eb3ca-50b8-48fd-ae91-2a028f3915de"
+      }
     }
   }
 }
