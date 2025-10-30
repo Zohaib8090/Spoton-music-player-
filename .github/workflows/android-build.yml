@@ -26,7 +26,7 @@ jobs:
         run: npm install
 
       - name: Generate native Android code
-        run: npx expo prebuild --platform android --no-install
+        run: npx expo prebuild --platform android
 
       - name: Build Android APK
         run: |
