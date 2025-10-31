@@ -20,7 +20,8 @@
             "kotlinVersion": "2.0.21"
           }
         }
-      ]
+      ],
+      "./plugins/withAndroidDuplicateClassesFix.js"
     ],
     "android": {
       "package": "com.zohaib144.spotonmusicplayer"
