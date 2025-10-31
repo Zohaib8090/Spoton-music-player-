@@ -43,6 +43,7 @@
           }
         }
       ],
+      "./plugins/withAndroidDuplicateClassesFix.js",
       [
         "expo-build-properties",
         {
