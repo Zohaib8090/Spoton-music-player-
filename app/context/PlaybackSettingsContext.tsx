@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import * as AudioService from '@/services/AudioService';
+import * as AudioService from '@/app/services/AudioService';
 
 const PlaybackSettingsContext = createContext();
 
