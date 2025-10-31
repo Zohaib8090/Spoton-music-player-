@@ -28,9 +28,10 @@ jobs:
       - name: Generate native Android code
         run: npx expo prebuild --platform android
 
-      - name: Build Android APK
+      - name: Clean and Build Android APK
         run: |
           cd android
+          ./gradlew clean
           ./gradlew assembleRelease --stacktrace
         
       - name: Upload APK
