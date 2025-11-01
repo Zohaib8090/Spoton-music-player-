@@ -17,7 +17,7 @@
             "targetSdkVersion": 34,
             "multiDexEnabled": true,
             "enableV2Signing": true,
-            "kotlinVersion": "2.0.20"
+            "kotlinVersion": "2.0.21"
           }
         }
       ],
