@@ -1,4 +1,3 @@
-
 const { withAppBuildGradle } = require('@expo/config-plugins');
 
 const withAndroidDuplicateClassesFix = (config) => {
@@ -8,6 +7,9 @@ const withAndroidDuplicateClassesFix = (config) => {
 configurations.all {
     exclude group: 'com.android.support', module: 'support-v4'
     exclude group: 'com.android.support', module: 'support-compat'
+    resolutionStrategy {
+        force 'androidx.core:core-ktx:1.8.0'
+    }
 }
 `;
     }
