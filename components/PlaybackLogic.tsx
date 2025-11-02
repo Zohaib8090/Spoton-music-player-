@@ -1,6 +1,6 @@
 
 import { useEffect, useRef, useState } from 'react';
-import TrackPlayer, { useProgress, useActiveTrack, Event, RepeatMode } from 'react-native-track-player';
+import Video from 'react-native-video';
 import { usePlaybackSettings } from '@/context/PlaybackSettingsContext';
 import MiniPlayer from './MiniPlayer';
 import FullScreenPlayer from './FullScreenPlayer';
@@ -9,14 +9,14 @@ import { YOUTUBE_API_KEY } from '../config/streaming-services';
 
 const PlaybackLogic = () => {
   const { automix, crossfade, gaplessPlayback } = usePlaybackSettings();
-  const progress = useProgress(250);
+  const [progress, setProgress] = useState({ currentTime: 0, seekableDuration: 0 });
   const isFading = useRef(false);
-  const currentTrack = useActiveTrack();
+  const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isCommentsVisible, setIsCommentsVisible] = useState(false);
   const [isVideo, setIsVideo] = useState(false);
-  const [repeatMode, setRepeatMode] = useState(RepeatMode.Off);
+  const [repeatMode, setRepeatMode] = useState('off');
   const [isShuffleEnabled, setIsShuffleEnabled] = useState(false);
   const [queue, setQueue] = useState([]);
   const [activeTab, setActiveTab] = useState('Up Next');
@@ -27,55 +27,8 @@ const PlaybackLogic = () => {
   const [likes, setLikes] = useState(0);
   const [dislikes, setDislikes] = useState(0);
   const [comments, setComments] = useState([]);
+  const videoRef = useRef(null);
 
-  useEffect(() => {
-    const getInitialData = async () => {
-      const initialRepeatMode = await TrackPlayer.getRepeatMode();
-      setRepeatMode(initialRepeatMode);
-      const currentQueue = await TrackPlayer.getQueue();
-      setQueue(currentQueue);
-    };
-    getInitialData();
-  }, []);
-
-  useEffect(() => {
-    const listener = TrackPlayer.addEventListener(Event.PlaybackState, (data) => {
-      setIsPlaying(data.state === 'playing');
-    });
-    return () => listener.remove();
-  }, []);
-
-  useEffect(() => {
-    if (
-      automix &&
-      crossfade > 0 &&
-      progress.duration > 0 &&
-      progress.position > 0 &&
-      !isFading.current &&
-      progress.duration - progress.position <= crossfade
-    ) {
-      isFading.current = true;
-      let volume = 1;
-      const fadeOutInterval = setInterval(() => {
-        volume = Math.max(0, volume - 0.1);
-        TrackPlayer.setVolume(volume);
-        if (volume <= 0) {
-          clearInterval(fadeOutInterval);
-          TrackPlayer.skipToNext().then(() => {
-            // Reset volume for the new track
-            TrackPlayer.setVolume(1);
-            isFading.current = false;
-          });
-        }
-      }, (crossfade * 1000) / 10); // 10 steps for fade out
-    }
-  }, [automix, crossfade, progress.position, progress.duration]);
-
-  useEffect(() => {
-    // Gapless playback is usually handled by the underlying audio engine and is enabled by default in modern players.
-    // This setting will ensure that we are not interfering with the default behavior.
-    // For this implementation, we will assume that the track player handles gapless playback automatically when this setting is on.
-  }, [gaplessPlayback]);
 
   const fetchInteractions = async (songId) => {
     try {
@@ -149,21 +102,25 @@ const PlaybackLogic = () => {
     }
   };
 
-  const handlePlayPause = () => {
-    if (isPlaying) {
-      TrackPlayer.pause();
-    } else {
-      TrackPlayer.play();
-    }
-  };
+    const handlePlayPause = () => {
+        setIsPlaying(!isPlaying);
+    };
 
-  const handleSkipNext = () => {
-    TrackPlayer.skipToNext();
-  };
+    const handleSkipNext = () => {
+        const currentIndex = queue.findIndex(track => track.id === currentTrack.id);
+        const nextIndex = (currentIndex + 1) % queue.length;
+        setCurrentTrack(queue[nextIndex]);
+    };
 
-  const handleSkipPrevious = () => {
-    TrackPlayer.skipToPrevious();
-  };
+    const handleSkipPrevious = () => {
+        const currentIndex = queue.findIndex(track => track.id === currentTrack.id);
+        const prevIndex = (currentIndex - 1 + queue.length) % queue.length;
+        setCurrentTrack(queue[prevIndex]);
+    };
+
+    const handleSeek = (value) => {
+        videoRef.current.seek(value);
+    };
 
   const handleCast = () => {
     console.log('Casting...');
@@ -186,11 +143,9 @@ const PlaybackLogic = () => {
   };
 
   const handleShuffle = async () => {
-    const currentQueue = await TrackPlayer.getQueue();
     if (!isShuffleEnabled) {
-        const shuffledQueue = [...currentQueue].sort(() => Math.random() - 0.5);
-        await TrackPlayer.removeUpcomingTracks();
-        await TrackPlayer.add(shuffledQueue);
+        const shuffledQueue = [...queue].sort(() => Math.random() - 0.5);
+        setQueue(shuffledQueue);
     } else {
         // How to un-shuffle is a design decision. For now, we will just reset to the original queue.
         // This requires storing the original queue separately.
@@ -199,8 +154,9 @@ const PlaybackLogic = () => {
   };
 
   const handleRepeat = () => {
-    const newRepeatMode = (repeatMode + 1) % 3;
-    TrackPlayer.setRepeatMode(newRepeatMode);
+    const repeatModes = ['off', 'track', 'queue'];
+    const currentModeIndex = repeatModes.indexOf(repeatMode);
+    const newRepeatMode = repeatModes[(currentModeIndex + 1) % repeatModes.length];
     setRepeatMode(newRepeatMode);
   };
 
@@ -254,6 +210,16 @@ const PlaybackLogic = () => {
 
   return (
     <>
+      {currentTrack && (
+        <Video
+          ref={videoRef}
+          source={{ uri: currentTrack.url }}
+          paused={!isPlaying}
+          onProgress={data => setProgress({ currentTime: data.currentTime, seekableDuration: data.seekableDuration })}
+          onEnd={handleSkipNext}
+          repeat={repeatMode === 'track'}
+        />
+      )}
       <MiniPlayer
         song={currentTrack}
         onPlayPause={handlePlayPause}
@@ -270,7 +236,7 @@ const PlaybackLogic = () => {
         onPlayPause={handlePlayPause}
         onSkipNext={handleSkipNext}
         onSkipPrevious={handleSkipPrevious}
-        progress={{ ...progress, isPlaying }}
+        progress={progress}
         onShuffle={handleShuffle}
         onRepeat={handleRepeat}
         isShuffleEnabled={isShuffleEnabled}
@@ -291,6 +257,8 @@ const PlaybackLogic = () => {
         likes={likes}
         dislikes={dislikes}
         isVideo={isVideo}
+        isPlaying={isPlaying}
+        onSeek={handleSeek}
       />
       <Comments
         song={currentTrack}

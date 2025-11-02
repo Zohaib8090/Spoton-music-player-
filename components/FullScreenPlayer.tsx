@@ -4,7 +4,6 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ScrollView, 
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import ImageColors from 'react-native-image-colors';
-import { RepeatMode } from 'react-native-track-player';
 import { WebView } from 'react-native-webview';
 import { router } from 'expo-router';
 import MarqueeText from '@/components/MarqueeText';
@@ -38,6 +37,8 @@ const FullScreenPlayer = ({
   likes,
   dislikes,
   isVideo,
+  isPlaying,
+  onSeek
 }) => {
   const [backgroundColor, setBackgroundColor] = useState('#2C2C2E');
 
@@ -60,10 +61,10 @@ const FullScreenPlayer = ({
   const renderRepeatIcon = () => {
     let iconName = 'repeat';
     let iconColor = 'white';
-    if (repeatMode === RepeatMode.Track) {
+    if (repeatMode === 'track') {
       iconName = 'repeat-once';
       iconColor = '#1DB954'; // Active color
-    } else if (repeatMode === RepeatMode.Queue) {
+    } else if (repeatMode === 'queue') {
       iconName = 'repeat';
       iconColor = '#1DB954'; // Active color
     }
@@ -204,15 +205,16 @@ const FullScreenPlayer = ({
           <Slider
             style={styles.slider}
             minimumValue={0}
-            maximumValue={progress.duration}
-            value={progress.position}
+            maximumValue={progress.seekableDuration}
+            value={progress.currentTime}
             minimumTrackTintColor="#FFFFFF"
             maximumTrackTintColor="#A9A9A9"
             thumbTintColor="#FFFFFF"
+            onSlidingComplete={onSeek}
           />
           <View style={styles.timeContainer}>
-            <Text style={styles.timeText}>{new Date(progress.position * 1000).toISOString().substr(14, 5)}</Text>
-            <Text style={styles.timeText}>{new Date(progress.duration * 1000).toISOString().substr(14, 5)}</Text>
+            <Text style={styles.timeText}>{new Date(progress.currentTime * 1000).toISOString().substr(14, 5)}</Text>
+            <Text style={styles.timeText}>{new Date(progress.seekableDuration * 1000).toISOString().substr(14, 5)}</Text>
           </View>
         </View>
 
@@ -224,7 +226,7 @@ const FullScreenPlayer = ({
             <Ionicons name="play-skip-back" size={48} color="white" />
           </TouchableOpacity>
           <TouchableOpacity onPress={onPlayPause} style={styles.playButton}>
-            <Ionicons name={progress.isPlaying ? 'pause' : 'play'} size={64} color="black" />
+            <Ionicons name={isPlaying ? 'pause' : 'play'} size={64} color="black" />
           </TouchableOpacity>
           <TouchableOpacity onPress={onSkipNext}>
             <Ionicons name="play-skip-forward" size={48} color="white" />
